@@ -1,1 +1,9 @@
-
+"use client";
+import {useState} from "react";
+const money=n=>new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n);
+export default function AdminOrders({initialOrders}) {
+ const [orders,setOrders]=useState(initialOrders);const [message,setMessage]=useState("");
+ const activate=async(id,status)=>{setMessage("Menyimpan...");const r=await fetch("/api/admin/orders/"+id,{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify({service_status:status})});const d=await r.json();if(!r.ok){setMessage(d.error||"Gagal menyimpan");return;}setOrders(xs=>xs.map(x=>x.id===id?{...x,service_status:status}:x));setMessage("Status layanan diperbarui.");};
+ const paid=orders.filter(x=>x.payment_status==="paid").reduce((s,x)=>s+x.amount,0);
+ return <><div className="metrics"><article><small>Total pesanan</small><b>{orders.length}</b></article><article><small>Menunggu pembayaran</small><b>{orders.filter(x=>x.payment_status==="pending").length}</b></article><article><small>Pembayaran berhasil</small><b>{orders.filter(x=>x.payment_status==="paid").length}</b></article><article><small>Total pembayaran berhasil</small><b>{money(paid)}</b></article></div><article className="panel orders"><h2>Daftar pesanan</h2><p>Aktivasi hanya tersedia untuk pesanan dengan pembayaran berhasil.</p>{message&&<p>{message}</p>}<div className="table-wrap"><table><thead><tr><th>Pelanggan</th><th>Paket</th><th>Nominal</th><th>Pembayaran</th><th>Layanan</th><th>Aksi</th></tr></thead><tbody>{orders.length?orders.map(o=><tr key={o.id}><td>{o.customer_name}<small>{o.customer_email}</small></td><td>{o.plan}</td><td>{money(o.amount)}</td><td>{o.payment_status}</td><td>{o.service_status}</td><td>{o.payment_status==="paid"? <><button className="small" onClick={()=>activate(o.id,"active")}>Aktifkan</button> <button className="small danger" onClick={()=>activate(o.id,"suspended")}>Tangguhkan</button></>:"Menunggu pembayaran"}</td></tr>):<tr><td colSpan="6" className="empty">Belum ada pesanan masuk.</td></tr>}</tbody></table></div></article></>;
+}

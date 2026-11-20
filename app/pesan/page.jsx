@@ -1,0 +1,8 @@
+"use client";
+import {useState} from "react";
+const prices={Starter:15000,Business:35000,Pro:75000};
+export default function Pesan(){
+ const [name,setName]=useState("");const [plan,setPlan]=useState("Starter");const [msg,setMsg]=useState("");
+ async function submit(e){e.preventDefault();setMsg("Memproses pesanan...");try{const r=await fetch("/api/orders",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({name,plan,email:document.querySelector('input[type=email]').value})});const d=await r.json();if(!r.ok)throw new Error(d.error||"Gagal membuat pesanan");if(d.payment_url)location.href=d.payment_url;else setMsg(d.message||"Pesanan tersimpan. Pembayaran belum dikonfigurasi.");}catch(e){setMsg(e.message);}}
+ return <main className="auth-wrap"><form className="auth-card" onSubmit={submit}><a className="brand" href="/">◈ SKY<span>HOST</span></a><h1>Pesan hosting</h1><p>Login dulu agar pesanan tersimpan di akunmu.</p><label>Nama pelanggan</label><input required value={name} onChange={e=>setName(e.target.value)}/><label>Email akun</label><input type="email" required/><label>Paket</label><select value={plan} onChange={e=>setPlan(e.target.value)}>{Object.keys(prices).map(x=><option key={x}>{x}</option>)}</select><p className="price">Rp{prices[plan].toLocaleString("id-ID")}<small>/bulan</small></p><button className="primary auth-submit">Buat pesanan</button>{msg&&<p>{msg}</p>}<a href="/login">Masuk</a> · <a href="/daftar">Daftar</a></form></main>;
+}
